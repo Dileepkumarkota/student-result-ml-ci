@@ -58,7 +58,9 @@ jobs:
           cp student_result_model.pkl release_candidate/
           cp metrics.json release_candidate/
           cp requirements.txt release_candidate/
-          printf 'Student Result Prediction ML Application\nRun: python app.py\nHealth endpoint: GET /\nPrediction endpoint: POST /predict\n' > release_candidate/DEPLOYMENT.txt
+          cp Dockerfile release_candidate/
+          cp .dockerignore release_candidate/
+          printf 'Student Result Prediction ML Application\nRun locally: python app.py\nHealth endpoint: GET /\nPrediction endpoint: POST /predict\nDocker build: docker build -t student-result-ml:1.0 .\nDocker run: docker run --rm -p 5000:5000 student-result-ml:1.0\n' > release_candidate/DEPLOYMENT.txt
 
       - name: Upload release candidate
         uses: actions/upload-artifact@v4
