@@ -1,41 +1,59 @@
-# Student Result Prediction ML Model with GitHub Actions CI
+# Student Result Prediction ML Application — CI/CD
 
-This educational project demonstrates an ML continuous-integration pipeline. GitHub Actions installs dependencies, generates synthetic student data, trains and evaluates a Logistic Regression classifier, saves the model and metrics, checks a model-accuracy quality gate, runs automated tests, and uploads validated outputs as a downloadable workflow artifact.
+This educational project demonstrates an end-to-end machine-learning CI and Continuous Delivery workflow using GitHub Actions.
 
-## Pipeline
-1. Set up Python 3.11 and install `requirements.txt`.
-2. Generate 300 reproducible demonstration records.
-3. Split data into 80% training and 20% testing.
-4. Scale features and train Logistic Regression.
-5. Save the model and evaluation metrics.
-6. Check model accuracy using `quality_gate.py` (minimum 85%).
-7. Run automated tests.
-8. Upload the model, metrics, and generated dataset as the `student-result-ml-artifacts` artifact for seven days.
+## Workflow
+1. Install Python dependencies.
+2. Generate reproducible synthetic student data and train a Logistic Regression model.
+3. Save the trained model and evaluation metrics.
+4. Enforce the minimum model-accuracy quality gate (85%).
+5. Run automated ML pipeline tests.
+6. Run Flask prediction API tests.
+7. Upload the generated ML artifacts.
+8. Package the validated application as a release candidate and upload it as a separate workflow artifact.
 
-## Features
-- `attendance`: attendance percentage
-- `internal_marks`: internal assessment marks
-- `assignment_marks`: assignment marks
-- `previous_score`: previous academic score
+**Continuous Delivery prepares a release candidate; it does not deploy the application to a production server.**
 
-Target: `result` (1 = PASS, 0 = FAIL).
+## Project files
+- `train_model.py` — generates demonstration data, trains/evaluates the model, and saves outputs.
+- `quality_gate.py` — fails the workflow when accuracy is below 85%.
+- `test_ml_pipeline.py` — automated ML pipeline tests.
+- `app.py` — Flask health and prediction API.
+- `test_app.py` — API tests.
+- `.github/workflows/ml-ci.yml` — CI/CD workflow.
 
-## Run locally
+## Prediction API
+The API expects four numeric features: `attendance`, `internal_marks`, `assignment_marks`, and `previous_score`.
+
+Start locally after training:
 ```bash
 python -m pip install -r requirements.txt
 python train_model.py
 python quality_gate.py
-python -m unittest discover -v
+python app.py
 ```
 
-## Download generated ML artifacts
-After a successful GitHub Actions run, open the repository's **Actions** tab, select the latest **Student Result ML CI** run, and download **student-result-ml-artifacts** from the Artifacts section. The archive contains:
-- `student_result_model.pkl` — trained model
-- `metrics.json` — evaluation metrics
-- `student_results.csv` — generated demonstration dataset
+Health check: `GET http://127.0.0.1:5000/`
 
-The artifact is retained for seven days. These generated files are stored as a workflow artifact, not automatically committed to the source repository.
+Prediction: send a JSON `POST` request to `http://127.0.0.1:5000/predict`:
+```json
+{
+  "attendance": 90,
+  "internal_marks": 85,
+  "assignment_marks": 88,
+  "previous_score": 80
+}
+```
 
-The workflow at `.github/workflows/ml-ci.yml` runs on pushes and pull requests to `main`, or manually from the Actions tab.
+The API responds with a `PASS` or `FAIL` prediction and a numeric prediction code. Missing or non-numeric fields are rejected.
 
-**Note:** This uses synthetic data for teaching CI; it is not a validated model for real student decisions. Check actual accuracy in the workflow logs or `metrics.json`.
+## Download the workflow artifacts
+Open the repository's **Actions** tab, choose a successful **Student Result ML CI-CD** run, and download either artifact:
+
+- **student-result-ml-artifacts** — trained model, metrics, and generated demonstration dataset.
+- **student-result-ml-release** — `app.py`, `student_result_model.pkl`, `metrics.json`, `requirements.txt`, and `DEPLOYMENT.txt`.
+
+Artifacts are retained for seven days. They are downloadable workflow outputs and are not automatically committed to the source repository.
+
+## Important limitation
+The dataset is synthetic and intended for learning CI/CD. This model is not validated for real student assessment decisions.
